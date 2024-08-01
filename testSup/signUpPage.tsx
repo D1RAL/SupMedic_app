@@ -29,32 +29,39 @@ export default function SignUp() {
   const [errorMessage, setErrorMessage] = useState('');
   const { width, height } = useWindowDimensions();
   const navigation = useNavigation<LoginScreenNavigationProp>();
-  const handleSubmit= async ()=>{
-    if(email && password){
-      try{
-        await createUserWithEmailAndPassword(auth, email, password)
-      }catch(err){
-        console.log('got error:', err.message)
-      }
-    }
-  }
 
-  const handleSignUp = () => {
+  const validateEmail = (email: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
+  const validatePassword = (password: string) => {
+    const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+    return re.test(password);
+  };
+
+  const handleSubmit = async () => {
     const { nom, prenoms, email, password } = form;
     if (!nom || !prenoms || !email || !password) {
-      setErrorMessage('Veuillez remplir tous les champs.');
-      return;
+      setErrorMessage('Tous les champs sont requis.');
+    } else if (!validateEmail(email)) {
+      setErrorMessage('Email invalide.');
+    } else if (!validatePassword(password)) {
+      setErrorMessage('Le mot de passe doit contenir des majuscules, des minuscules et des chiffres, et doit être d\'au moins 8 caractères.');
+    } else {
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        // Redirigez vers une autre page ou effectuez d'autres actions
+      } catch (err) {
+        console.log('got error:', err.message);
+        setErrorMessage(err.message);
+      }
     }
-    // handle sign up
-    setErrorMessage('');
-  };
-  const SignUpTouch = ()=> {  //fonction pour appeler les deux actions a executer sur le onPress du signUp
-    handleSignUp()
-    handleSubmit()
-  }
-  const [email, setEmail]=useState('');
-  const[password, setPassword]= useState('');
 
+    setTimeout(() => {
+      setErrorMessage('');
+    }, 2500); // Effacer le message d'erreur après 1.5 secondes
+  };
   return (
     <View style={{ flex: 1, backgroundColor: "#08BDBA" }}>
       <ImageBackground
@@ -116,11 +123,11 @@ export default function SignUp() {
                     autoCorrect={false}
                     clearButtonMode="while-editing"
                     keyboardType="email-address"
-                    onChangeText={value => setEmail(value)}
+                    onChangeText={email => setForm({ ...form, email })}
                     placeholder="exemple@exemple.com"
                     placeholderTextColor="#6b7280"
                     style={{ ...styles.inputControl, fontSize: width * 0.04 }}
-                    value={email}
+                    value={form.email}
                   />
                 </View>
               </View>
@@ -132,18 +139,18 @@ export default function SignUp() {
                   <TextInput
                     autoCorrect={false}
                     clearButtonMode="while-editing"
-                    onChangeText={value => setPassword(value)}
+                    onChangeText={password => setForm({ ...form, password })}
                     placeholder=""
                     placeholderTextColor="#6b7280"
                     style={{ ...styles.inputControl, fontSize: width * 0.04 }}
                     secureTextEntry={true}
-                    value={password}
+                    value={form.password}
                   />
                 </View>
               </View>
 
               <View style={styles.formAction}>
-                <TouchableOpacity onPress={SignUpTouch}>
+                <TouchableOpacity onPress={handleSubmit}>
                   <View style={{ ...styles.btn, borderRadius: width * 0.08, paddingVertical: height * 0.015, paddingHorizontal: width * 0.05 }}>
                     <Text style={{ ...styles.btnText, fontSize: width * 0.045 }}>
                       S'inscrire

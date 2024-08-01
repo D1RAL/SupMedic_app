@@ -31,19 +31,29 @@ export default function Login() {
 
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const navigation_bis = useNavigation<SignUpScreenNavigationProp>();
-
-  const [email, setEmail]=useState('');
-  const[password, setPassword]= useState('');
-  const handleSubmit= async ()=>{
-    if(email && password){
-      try{
-        await signInWithEmailAndPassword(auth, email, password)
-      }catch(err){
-        console.log('got error:', err.message)
+  const [errorMessage, setErrorMessage] = useState('');
+  const handleSubmit = async () => {
+    const { email, password } = form;
+    if (email && password) {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        // Redirigez vers une autre page ou effectuez d'autres actions
+      } catch (err) {
+        console.log('got error:', err.message);
+        setErrorMessage(err.message);
+        setTimeout(() => {
+          setErrorMessage('');
+          
+        }, 1500);
       }
+    } else {
+      setErrorMessage('Tous les champs sont requis.');
+      setTimeout(() => {
+        setErrorMessage('')
+        
+      }, 1500);
     }
-  }
-
+  };
   return (
     <View style={{ flex: 1, backgroundColor: "#08BDBA" }}>
       <ImageBackground
@@ -72,7 +82,9 @@ export default function Login() {
             </View>
 
             <View style={styles.form}>
-
+            {errorMessage ? (
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              ) : null}
               <View style={styles.input}>
                 <Text style={styles.inputLabel}>Adresse E-mail</Text>
                 <View style={styles.inputWithIcon}>
@@ -82,11 +94,11 @@ export default function Login() {
                     autoCorrect={false}
                     clearButtonMode="while-editing"
                     keyboardType="email-address"
-                    onChangeText={value => setEmail(value)}
+                    onChangeText={email => setForm({ ...form, email })}
                     placeholder="exemple@exemple.com"
                     placeholderTextColor="#6b7280"
                     style={styles.inputControl}
-                    value={email}
+                    value={form.email}
                   />
                 </View>
               </View>
@@ -100,11 +112,12 @@ export default function Login() {
                     autoCorrect={false}
                     clearButtonMode="while-editing"
                     keyboardType="email-address"
-                    onChangeText={value => setPassword(value)}
+                    onChangeText={password => setForm({ ...form, password })}
                     placeholder="*****"
                     placeholderTextColor="#6b7280"
                     style={styles.inputControl}
-                    value={password}
+                    value={form.password}
+                    secureTextEntry={true}
                   />
                 </View>
               </View>
@@ -247,5 +260,11 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     fontWeight: '600',
     color: '#fff',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 22,
+    marginBottom: 10,
+    textAlign: 'center',
   },
 });
